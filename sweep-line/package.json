@@ -1,0 +1,25 @@
+{
+  "name": "sweep-line",
+  "version": "1.1.0",
+  "description": "Implementation of Zalik's algorithm for Delaunay triangulation construct",
+  "main": "dest/sweep-line.min.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "-"
+  },
+  "keywords": [
+    "delaunay",
+    "triangulation",
+    "2d",
+    "sweep-line"
+  ],
+  "author": "Alexander Doroshenko <doroshenkoay@bk.ru>",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-browserify": "^5.0.0",
+    "grunt-contrib-uglify": "^3.0.1",
+    "grunt-contrib-watch": "^1.0.0"
+  }
+}

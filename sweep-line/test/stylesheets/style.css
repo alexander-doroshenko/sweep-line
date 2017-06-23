@@ -1,0 +1,28 @@
+@CHARSET "UTF-8";
+
+body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	color: "2e2e2e";
+}
+
+#wrapper {
+	position: absolute;
+	top: 1em;
+	left: 1em;
+	right: 1em;
+	bottom: 1em;
+	width: 80%;
+	height: 80%;	
+}
+
+#container {
+	position: absolute;
+	top: 2em;
+	left: 2em;
+	width: 90%;
+	height: 90%;
+	color: "3e3e3e";
+}
+
