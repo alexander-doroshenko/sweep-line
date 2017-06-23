@@ -267,12 +267,10 @@ $(document).ready(
 
 			var points = [];
 			for (var i = 1000; i--;) {
-				var p = new Point(Math.random(), Math.random());
-				points.push(p);
+				points.push(new SweepLine.Point(Math.random(), Math.random()));
 			}
 
-			var triangulation = new Triangulation();
-			var triangles = triangulation.build(points);
+			var triangles = SweepLine.triangulate(points);
 
 			// auto scale / translate
 			var bounds = getBoundingBox(points);
