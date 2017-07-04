@@ -5,7 +5,6 @@
 "use strict";
 
 /**
-<<<<<<< HEAD
  * create global variable
  */
 function SweepLine() {

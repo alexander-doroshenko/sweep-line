@@ -7,7 +7,7 @@ Based on two papers:
 "Sweep-line algorithm for constrained Delaunay triangulation" by V. Domiter and and B. Zalik
 
 
-### Usage:
+### Usage
 
 You can use any point class implementation that contains "x" and "y" fields, for example:
 
@@ -36,7 +36,7 @@ three links to adjacent (neighbor) triangles 'adjA, 'adjB', 'adjC' that opposite
 I think my output more useful than indexes of triangle vertices in the input set of points.
 So if you want know which point of the input set in some triangle - add 'id' field in input point.
 
-### Note: 
+### Note
 
 This implementation is not fastest, though it work.
 If you want constrained Delaunay triangulation I advice used poly2tri library
