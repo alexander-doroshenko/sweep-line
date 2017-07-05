@@ -4,7 +4,7 @@
 
 // -----------------------------------------------------
 /**
- * construct a triangle edge, used in adjacent front
+ * construct a advancing front edge
  * 
  * @param {Point}
  *            a - begin point
@@ -17,7 +17,13 @@ var Edge = function(a, b, adjA) {
 	this.a = a;
 	this.b = b;
 
-	// links to previous and next edges
+	// for use as AvlTree node
+	this.parent = null;
+	this.left = null;
+	this.right = null;
+	this.height = 1;
+	
+	// for use as double-linked list node
 	this.before = null;
 	this.after = null;
 

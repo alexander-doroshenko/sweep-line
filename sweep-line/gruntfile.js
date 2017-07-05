@@ -33,6 +33,6 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 
 	// grunt.registerTask('test', ['jshint', 'qunit']);
-	grunt.registerTask('default', [ 'browserify', 'uglify', 'watch' ]);
-//	grunt.registerTask('default', [ 'browserify', 'uglify' ]);
+//	grunt.registerTask('default', [ 'browserify', 'uglify', 'watch' ]);
+	grunt.registerTask('default', [ 'browserify', 'uglify' ]);
 };

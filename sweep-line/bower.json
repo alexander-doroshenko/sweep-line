@@ -1,6 +1,6 @@
 {
-  "name": "Triangle2D",
-  "version": "0.0.0",
+  "name": "sweep-line",
+  "version": "1.2.0",
   "license": "MIT",
   "ignore": [
     "**/.*",

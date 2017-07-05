@@ -5,12 +5,12 @@
 var Point = require('./point');
 var Triangle = require('./triangle');
 var Edge = require('./edge');
-var AdvancingFront = require('./advancingfront');
+var DoubleLinkedList = require('./doublelinkedlist');
+//var AvlTree = require('./avltree');
 
 // --------------------------------------------------------------------
 
 /**
-<<<<<<< HEAD
  * accuracy of computations
  */
 var EPSILON = 0.000000001;
@@ -47,15 +47,15 @@ function triangulate(points) {
 	st.adjC = u;
 
 	// initialize advancing front with new edges
-	var af = new AdvancingFront(u);
-	af.add(af.root, v);
+	var advancingFront = new AvlTree(u);
+	advancingFront.add(advancingFront.root, v);
 
 	// sweep all points
-	var triangles = sweep(points, af, [ st ]);
+	var triangles = sweep(points, advancingFront, [ st ]);
 
 	// delete triangles contains artificial points and
 	// add missing triangles to convex hull
-	return finalize(af, triangles);
+	return finalize(advancingFront, triangles);
 }
 
 /**
@@ -99,15 +99,15 @@ function computeSuperTriangle(points) {
  * @param points
  *            {Array<Point>} given points
  */
-function sweep(points, af, triangles) {
+function sweep(points, advancingFront, triangles) {
 	for (var i = 1; i < points.length; i++) {
-		var underEdge = af.find(points[i]);
+		var underEdge = advancingFront.find(points[i]);
 		if (points[i].x - underEdge.a.x < EPSILON) {
-			addPointUnderPoint(points[i], underEdge.before, af, triangles);
+			addPointUnderPoint(points[i], underEdge.before, advancingFront, triangles);
 		} else if (underEdge.b.x - points[i].x < EPSILON) {
-			addPointUnderPoint(points[i], underEdge, af, triangles);
+			addPointUnderPoint(points[i], underEdge, advancingFront, triangles);
 		} else {
-			addPointUnderEdge(points[i], underEdge, af, triangles);
+			addPointUnderEdge(points[i], underEdge, advancingFront, triangles);
 		}
 	}
 	return triangles;
@@ -218,7 +218,7 @@ function addPointUnderEdge(point, underEdge, advancingFront, triangles) {
  */
 function finalize(advancingFront, triangles) {
 
-	var u = advancingFront.root;
+	var u = advancingFront.minElement();
 	// remove triangles with first artificial point
 	while (true) {
 		if ((u.adjA).adjA === null || (u.adjA).adjB === null
@@ -230,7 +230,7 @@ function finalize(advancingFront, triangles) {
 	}
 
 	// remove triangles with second artificial point
-	u = advancingFront.lastElement();
+	u = advancingFront.maxElement();
 	while (true) {
 		if ((u.adjA).adjA === null || (u.adjA).adjB === null
 				|| (u.adjA).adjC === null) {
@@ -253,7 +253,7 @@ function finalize(advancingFront, triangles) {
 	}
 	
 	// remove links on advancingFront edges
-	for (u = advancingFront.root; u !== null; u = u.after) {
+	for (u = advancingFront.minElement(); u !== null; u = u.after) {
 		(u.adjA).rotateToNeighbor(u);
 		(u.adjA).adjA = null;
 	}
@@ -267,29 +267,29 @@ function finalize(advancingFront, triangles) {
  * 
  * TODO do it more understandable
  * 
- * @param remEdge
+ * @param removingEdge
  *            {Edge} specified removing edge
  * @param advancingFront
  *            {AdvancingFront} the advancing front
  * @return {Array<Edge>} array of new edges
  */
-function removeEdgeWithTriangle(remEdge, advancingFront) {
+function removeEdgeWithTriangle(removingEdge, advancingFront) {
 
-	var remTriangle = remEdge.adjA;
-	remTriangle.rotateToNeighbor(remEdge);
+	var remTriangle = removingEdge.adjA;
+	remTriangle.rotateToNeighbor(removingEdge);
 	remTriangle.isDeleted = true;
 
 	var v = new Edge(remTriangle.a, remTriangle.c, remTriangle.adjB);
 	(remTriangle.adjB).rotateToNeighbor(remTriangle);
 	(remTriangle.adjB).adjA = v;
-	advancingFront.add(remEdge, v);
+	advancingFront.add(removingEdge, v);
 
 	var u = new Edge(remTriangle.b, remTriangle.a, remTriangle.adjC);
 	(remTriangle.adjC).rotateToNeighbor(remTriangle);
 	(remTriangle.adjC).adjA = u;
 
-	advancingFront.add(remEdge, u);
-	advancingFront.remove(remEdge);
+	advancingFront.add(removingEdge, u);
+	advancingFront.remove(removingEdge);
 	return [ u, v ];
 }
 
@@ -304,7 +304,7 @@ function removeEdgeWithTriangle(remEdge, advancingFront) {
  *            triangles of current triangulation
  */
 function fillToConvex(advancingFront, triangles) {
-	var u = advancingFront.root, v;
+	var u = advancingFront.minElement(), v;
 	while (u.after !== null) {
 		v = u.after;
 		if (u.classify(v.b) === -1) {
@@ -320,8 +320,11 @@ function fillToConvex(advancingFront, triangles) {
 	// check last and first edge in advancingFront (v contains last edge)
 	// and if angle between them non convex fill gap and check neighbor edge
 	while (true) {
-		if (v.classify(advancingFront.root.b) === -1) {
-			v = joinEdges(v, advancingFront.root, advancingFront, triangles);
+		u = advancingFront.minElement();
+		v = advancingFront.maxElement();
+
+		if (v.classify(u.b) === -1) {
+			v = joinEdges(v, u, advancingFront, triangles);
 			continue;
 		}
 		if ((v.before).classify(v.b) === -1) {

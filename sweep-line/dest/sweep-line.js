@@ -1,44 +1,11 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**
- * construct AdvancingFront as doubly linked list 
- * 
- * @param root
- *            {Edge} - specified root element
+ * double-linked list 
  */
-function AdvancingFront(root) {
-	this.root = root || null;
+
+function DoubleLinkedList(root) {
+	this.root = root;
 }
-
-/**
- * return last element of the advancing front
- * 
- * @return {Edge} last element
- */
-AdvancingFront.prototype.lastElement = function() {
-	var u = this.root;
-	while (u.after) {
-		u = u.after;
-	}
-	return u;
-};
-
-/**
- * remove the specified element from the advancing front
- * 
- * @param what
- *            {Edge} specified element
- */
-AdvancingFront.prototype.remove = function(what) {
-	if (what.before !== null) {
-		what.before.after = what.after;
-	}
-	if (what.after !== null) {
-		what.after.before = what.before;
-	}
-	if (this.root === what) {
-		this.root = what.after;
-	}
-};
 
 /**
  * insert element after specified position
@@ -48,7 +15,7 @@ AdvancingFront.prototype.remove = function(what) {
  * @param what
  *            {Edge} adding edge
  */
-AdvancingFront.prototype.add = function(where, what) {
+DoubleLinkedList.prototype.add = function(where, what) {
 	if (where.after !== null) {
 		where.after.before = what;
 	}
@@ -64,7 +31,7 @@ AdvancingFront.prototype.add = function(where, what) {
  *            {Point} specified point
  * @return {Edge} - edge under point or null
  */
-AdvancingFront.prototype.find = function(what) {
+DoubleLinkedList.prototype.find = function(what) {
 	var edge = this.root;
 	while (edge !== null) {
 		if (edge.b.x >= what.x) {
@@ -75,10 +42,49 @@ AdvancingFront.prototype.find = function(what) {
 	return null;
 };
 
-/*
- * export AdvancingFront class
+/**
+ * return last element of the list
+ * 
+ * @return {Edge} last element
  */
-module.exports = AdvancingFront;
+DoubleLinkedList.prototype.maxElement = function() {
+	var u = this.root;
+	while (u.after) {
+		u = u.after;
+	}
+	return u;
+};
+
+/**
+ * return minimum element (first) of this list
+ */
+DoubleLinkedList.prototype.minElement = function() {
+	return this.root;
+};
+
+/**
+ * remove the specified element from the advancing front
+ * 
+ * @param what
+ *            {Edge} specified element
+ */
+DoubleLinkedList.prototype.remove = function(what) {
+	if (what.before !== null) {
+		what.before.after = what.after;
+	}
+	if (what.after !== null) {
+		what.after.before = what.before;
+	}
+	if (this.root === what) {
+		this.root = what.after;
+	}
+};
+
+/*
+ * export DoubleLinkedList class 
+ */
+module.exports = DoubleLinkedList;
+
 },{}],2:[function(require,module,exports){
 /**
  * Simple implementation of the edge of the advancing front.
@@ -86,7 +92,7 @@ module.exports = AdvancingFront;
 
 // -----------------------------------------------------
 /**
- * construct a triangle edge, used in adjacent front
+ * construct a advancing front edge
  * 
  * @param {Point}
  *            a - begin point
@@ -99,7 +105,13 @@ var Edge = function(a, b, adjA) {
 	this.a = a;
 	this.b = b;
 
-	// links to previous and next edges
+	// for use as AvlTree node
+	this.parent = null;
+	this.left = null;
+	this.right = null;
+	this.height = 1;
+	
+	// for use as double-linked list node
 	this.before = null;
 	this.after = null;
 
@@ -233,7 +245,6 @@ module.exports = Point;
 "use strict";
 
 /**
-<<<<<<< HEAD
  * create global variable
  */
 function SweepLine() {
@@ -419,12 +430,12 @@ module.exports = Triangle;
 var Point = require('./point');
 var Triangle = require('./triangle');
 var Edge = require('./edge');
-var AdvancingFront = require('./advancingfront');
+var DoubleLinkedList = require('./doublelinkedlist');
+//var AvlTree = require('./avltree');
 
 // --------------------------------------------------------------------
 
 /**
-<<<<<<< HEAD
  * accuracy of computations
  */
 var EPSILON = 0.000000001;
@@ -461,15 +472,15 @@ function triangulate(points) {
 	st.adjC = u;
 
 	// initialize advancing front with new edges
-	var af = new AdvancingFront(u);
-	af.add(af.root, v);
+	var advancingFront = new AvlTree(u);
+	advancingFront.add(advancingFront.root, v);
 
 	// sweep all points
-	var triangles = sweep(points, af, [ st ]);
+	var triangles = sweep(points, advancingFront, [ st ]);
 
 	// delete triangles contains artificial points and
 	// add missing triangles to convex hull
-	return finalize(af, triangles);
+	return finalize(advancingFront, triangles);
 }
 
 /**
@@ -513,15 +524,15 @@ function computeSuperTriangle(points) {
  * @param points
  *            {Array<Point>} given points
  */
-function sweep(points, af, triangles) {
+function sweep(points, advancingFront, triangles) {
 	for (var i = 1; i < points.length; i++) {
-		var underEdge = af.find(points[i]);
+		var underEdge = advancingFront.find(points[i]);
 		if (points[i].x - underEdge.a.x < EPSILON) {
-			addPointUnderPoint(points[i], underEdge.before, af, triangles);
+			addPointUnderPoint(points[i], underEdge.before, advancingFront, triangles);
 		} else if (underEdge.b.x - points[i].x < EPSILON) {
-			addPointUnderPoint(points[i], underEdge, af, triangles);
+			addPointUnderPoint(points[i], underEdge, advancingFront, triangles);
 		} else {
-			addPointUnderEdge(points[i], underEdge, af, triangles);
+			addPointUnderEdge(points[i], underEdge, advancingFront, triangles);
 		}
 	}
 	return triangles;
@@ -632,7 +643,7 @@ function addPointUnderEdge(point, underEdge, advancingFront, triangles) {
  */
 function finalize(advancingFront, triangles) {
 
-	var u = advancingFront.root;
+	var u = advancingFront.minElement();
 	// remove triangles with first artificial point
 	while (true) {
 		if ((u.adjA).adjA === null || (u.adjA).adjB === null
@@ -644,7 +655,7 @@ function finalize(advancingFront, triangles) {
 	}
 
 	// remove triangles with second artificial point
-	u = advancingFront.lastElement();
+	u = advancingFront.maxElement();
 	while (true) {
 		if ((u.adjA).adjA === null || (u.adjA).adjB === null
 				|| (u.adjA).adjC === null) {
@@ -667,7 +678,7 @@ function finalize(advancingFront, triangles) {
 	}
 	
 	// remove links on advancingFront edges
-	for (u = advancingFront.root; u !== null; u = u.after) {
+	for (u = advancingFront.minElement(); u !== null; u = u.after) {
 		(u.adjA).rotateToNeighbor(u);
 		(u.adjA).adjA = null;
 	}
@@ -681,29 +692,29 @@ function finalize(advancingFront, triangles) {
  * 
  * TODO do it more understandable
  * 
- * @param remEdge
+ * @param removingEdge
  *            {Edge} specified removing edge
  * @param advancingFront
  *            {AdvancingFront} the advancing front
  * @return {Array<Edge>} array of new edges
  */
-function removeEdgeWithTriangle(remEdge, advancingFront) {
+function removeEdgeWithTriangle(removingEdge, advancingFront) {
 
-	var remTriangle = remEdge.adjA;
-	remTriangle.rotateToNeighbor(remEdge);
+	var remTriangle = removingEdge.adjA;
+	remTriangle.rotateToNeighbor(removingEdge);
 	remTriangle.isDeleted = true;
 
 	var v = new Edge(remTriangle.a, remTriangle.c, remTriangle.adjB);
 	(remTriangle.adjB).rotateToNeighbor(remTriangle);
 	(remTriangle.adjB).adjA = v;
-	advancingFront.add(remEdge, v);
+	advancingFront.add(removingEdge, v);
 
 	var u = new Edge(remTriangle.b, remTriangle.a, remTriangle.adjC);
 	(remTriangle.adjC).rotateToNeighbor(remTriangle);
 	(remTriangle.adjC).adjA = u;
 
-	advancingFront.add(remEdge, u);
-	advancingFront.remove(remEdge);
+	advancingFront.add(removingEdge, u);
+	advancingFront.remove(removingEdge);
 	return [ u, v ];
 }
 
@@ -718,7 +729,7 @@ function removeEdgeWithTriangle(remEdge, advancingFront) {
  *            triangles of current triangulation
  */
 function fillToConvex(advancingFront, triangles) {
-	var u = advancingFront.root, v;
+	var u = advancingFront.minElement(), v;
 	while (u.after !== null) {
 		v = u.after;
 		if (u.classify(v.b) === -1) {
@@ -734,8 +745,11 @@ function fillToConvex(advancingFront, triangles) {
 	// check last and first edge in advancingFront (v contains last edge)
 	// and if angle between them non convex fill gap and check neighbor edge
 	while (true) {
-		if (v.classify(advancingFront.root.b) === -1) {
-			v = joinEdges(v, advancingFront.root, advancingFront, triangles);
+		u = advancingFront.minElement();
+		v = advancingFront.maxElement();
+
+		if (v.classify(u.b) === -1) {
+			v = joinEdges(v, u, advancingFront, triangles);
 			continue;
 		}
 		if ((v.before).classify(v.b) === -1) {
@@ -851,4 +865,4 @@ function legalize(t1, t2) {
  * export triangulate function
  */
 module.exports = triangulate;
-},{"./advancingfront":1,"./edge":2,"./point":3,"./triangle":5}]},{},[4]);
+},{"./doublelinkedlist":1,"./edge":2,"./point":3,"./triangle":5}]},{},[4]);
